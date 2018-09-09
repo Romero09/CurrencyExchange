@@ -1,10 +1,9 @@
 package com.example.pavelsvetlugins.currencyexchange
 
-import android.animation.LayoutTransition
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
-import android.view.ViewGroup
 import android.view.View
+import android.view.ViewGroup
 import kotlinx.android.synthetic.main.recycler_view_rate.view.*
 
 
@@ -32,6 +31,7 @@ class CurrencyAdapter( private val currencyList: ArrayList<LocalCurrency>,
         fun bind(localCurrency: LocalCurrency, listener: Listener){
              itemView.currency_name.text = localCurrency.currency
             itemView.currency_value.text = localCurrency.rate.toString()
+            itemView.setOnClickListener { listener.onItemClick(localCurrency) }
         }
 
     }
