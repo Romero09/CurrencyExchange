@@ -10,7 +10,7 @@ import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.widget.Toast
 import com.google.gson.*
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.country_view.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Retrofit
@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity(), CountryAdapter.Listener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.country_view)
 
         initRecyclerView()
         DisplayProgressDialog()

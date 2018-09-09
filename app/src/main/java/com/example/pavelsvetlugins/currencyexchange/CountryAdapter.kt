@@ -4,7 +4,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import kotlinx.android.synthetic.main.recycler_view_row.view.*
+import kotlinx.android.synthetic.main.recycler_view_country.view.*
 
 class CountryAdapter(private val countryList: ArrayList<CurrencyDetails>,
                      private val listener: Listener) : RecyclerView.Adapter<CountryAdapter.ViewHolder>() {
@@ -24,7 +24,7 @@ class CountryAdapter(private val countryList: ArrayList<CurrencyDetails>,
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
 
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.recycler_view_row, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.recycler_view_country, parent, false)
 
         return ViewHolder(view)
     }
