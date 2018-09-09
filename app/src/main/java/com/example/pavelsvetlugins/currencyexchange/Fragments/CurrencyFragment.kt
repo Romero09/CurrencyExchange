@@ -1,6 +1,7 @@
 package com.example.pavelsvetlugins.currencyexchange.Fragments
 
 import android.app.ProgressDialog
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -21,6 +22,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.reflect.Type
 import java.util.*
 
+
+
 open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
 
     private val BASE_URL = "http://data.fixer.io"
@@ -31,6 +34,12 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
 
     private var mAdapter: CurrencyAdapter? = null
 
+    private var isLoading: Boolean = false
+
+    private lateinit var model: SharedViewModel
+
+    private var selectedCurrency: CurrencyDetails? = null
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return  inflater.inflate(R.layout.currency_view, container, false)
     }
@@ -38,15 +47,22 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        model = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
+
+
         initRecyclerView()
 
     }
 
     fun onActivitySwitch(){
+        if(!isLoading) {
+            DisplayProgressDialog()
+        }
+        selectedCurrency = model.currencyDetailsModel
         mAdapter?.clear()
         rv_rate_list.adapter = mAdapter
-        DisplayProgressDialog()
         loadJSON()
+        isLoading = true
     }
 
 
@@ -110,6 +126,7 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
                     mCurrencyRateList = ArrayList(list.currency)
                     mAdapter = CurrencyAdapter(mCurrencyRateList!!, this@CurrencyFragment)
                     rv_rate_list.adapter = mAdapter
+                    isLoading = false
                 }
             }
 
@@ -134,5 +151,6 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
         pDialog!!.isIndeterminate = false
         pDialog!!.show()
     }
+
 
 }

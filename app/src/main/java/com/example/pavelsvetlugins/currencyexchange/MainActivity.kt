@@ -31,9 +31,17 @@ class MainActivity : AppCompatActivity() {
 
         mViewPager.setCurrentItem(0)
 
+
+
     }
 
-
+    override fun onBackPressed() {
+        if(mViewPager.currentItem == 1){
+        mViewPager.setCurrentItem(0)}
+        else{
+        this.finish()
+            }
+    }
 
     fun setUpViewPager(viewPager: ViewPager){
         val fragmentAdapter = FragmentAdapter(supportFragmentManager)
@@ -44,7 +52,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun setViewPager(fragmentNumber: Int){
-        mViewPager.setCurrentItem(1)
+        mViewPager.setCurrentItem(fragmentNumber)
     }
 
 

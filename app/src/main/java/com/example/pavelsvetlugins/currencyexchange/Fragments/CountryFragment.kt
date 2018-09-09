@@ -1,6 +1,7 @@
 package com.example.pavelsvetlugins.currencyexchange.Fragments
 
 import android.app.ProgressDialog
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
@@ -23,6 +24,12 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.reflect.Type
 import java.util.*
 
+
+
+
+
+
+
 open class CountryFragment: Fragment(), CountryAdapter.Listener {
 
     private val BASE_URL = "https://free.currencyconverterapi.com"
@@ -33,7 +40,10 @@ open class CountryFragment: Fragment(), CountryAdapter.Listener {
 
     private val TAG = CountryFragment::class.java.simpleName
 
-    lateinit var fm: FragmentManager
+    private lateinit var fm: FragmentManager
+
+    private lateinit var model: SharedViewModel
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return  inflater.inflate(country_view, container, false)
@@ -41,6 +51,8 @@ open class CountryFragment: Fragment(), CountryAdapter.Listener {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
+        model = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
 
         initRecyclerView()
         DisplayProgressDialog()
@@ -119,6 +131,7 @@ open class CountryFragment: Fragment(), CountryAdapter.Listener {
     override fun onItemClick(currencyDetails: CurrencyDetails) {
         Toast.makeText(activity, "${currencyDetails.name} Clicked !", Toast.LENGTH_LONG).show()
         (activity as MainActivity).setViewPager(1)
+        model.currencyDetailsModel = currencyDetails
 
         val fragm = fm!!.fragments.get(1) as CurrencyFragment
         fragm.onActivitySwitch()
