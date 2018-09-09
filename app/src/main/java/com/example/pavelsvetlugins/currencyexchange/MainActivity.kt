@@ -9,15 +9,14 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.widget.Toast
-import io.reactivex.disposables.CompositeDisposable
+import com.google.gson.*
 import kotlinx.android.synthetic.main.activity_main.*
+import retrofit2.Call
+import retrofit2.Callback
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.reflect.Type
-import com.google.gson.*
-import retrofit2.Call
-import retrofit2.Callback
 import java.util.*
 
 
@@ -39,8 +38,6 @@ class MainActivity : AppCompatActivity(), CountryAdapter.Listener {
         initRecyclerView()
         DisplayProgressDialog()
         loadJSON()
-
-
 
     }
 
@@ -127,8 +124,6 @@ class MainActivity : AppCompatActivity(), CountryAdapter.Listener {
         pDialog!!.isIndeterminate = false
         pDialog!!.show()
     }
-
-
 
 
 
