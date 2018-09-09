@@ -3,6 +3,7 @@ package com.example.pavelsvetlugins.currencyexchange.Fragments
 import android.app.ProgressDialog
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.app.FragmentManager
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
@@ -32,7 +33,7 @@ open class CountryFragment: Fragment(), CountryAdapter.Listener {
 
     private val TAG = CountryFragment::class.java.simpleName
 
-    val fm = fragmentManager
+    lateinit var fm: FragmentManager
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return  inflater.inflate(country_view, container, false)
@@ -44,6 +45,7 @@ open class CountryFragment: Fragment(), CountryAdapter.Listener {
         initRecyclerView()
         DisplayProgressDialog()
         loadJSON()
+        fm = fragmentManager!!
     }
 
     private fun initRecyclerView() {
@@ -101,7 +103,7 @@ open class CountryFragment: Fragment(), CountryAdapter.Listener {
                     val list = response.body()!!
                     Log.d("RESPONSE", "" + list.toString())
 
-                    mCurrencyDetailsList = ArrayList(list.results.currencyContainer)
+                    mCurrencyDetailsList = ArrayList((list.results.currencyContainer).sortedWith(compareBy{ it.name }))
                     mAdapter = CountryAdapter(mCurrencyDetailsList!!, this@CountryFragment)
                     rv_android_list.adapter = mAdapter
                 }
@@ -117,6 +119,7 @@ open class CountryFragment: Fragment(), CountryAdapter.Listener {
     override fun onItemClick(currencyDetails: CurrencyDetails) {
         Toast.makeText(activity, "${currencyDetails.name} Clicked !", Toast.LENGTH_LONG).show()
         (activity as MainActivity).setViewPager(1)
+
         val fragm = fm!!.fragments.get(1) as CurrencyFragment
         fragm.onActivitySwitch()
     }

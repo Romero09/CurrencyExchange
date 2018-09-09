@@ -10,6 +10,10 @@ import kotlinx.android.synthetic.main.recycler_view_rate.view.*
 class CurrencyAdapter( private val currencyList: ArrayList<LocalCurrency>,
                        private val listener: Listener) : RecyclerView.Adapter<CurrencyAdapter.ViewHolder>() {
 
+    fun clear(){
+        currencyList.clear()
+    }
+
     interface Listener{
         fun onItemClick(localCurrency: LocalCurrency)
     }

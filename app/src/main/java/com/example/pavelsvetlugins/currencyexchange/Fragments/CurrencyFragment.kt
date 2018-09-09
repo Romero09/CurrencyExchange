@@ -43,6 +43,8 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
     }
 
     fun onActivitySwitch(){
+        mAdapter?.clear()
+        rv_rate_list.adapter = mAdapter
         DisplayProgressDialog()
         loadJSON()
     }
@@ -81,7 +83,6 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
     }
 
     private fun loadJSON() {
-
         val builder = GsonBuilder()
         builder.registerTypeAdapter(Rates::class.java, CurrencyListDeserializer())
         val gson = builder.create()

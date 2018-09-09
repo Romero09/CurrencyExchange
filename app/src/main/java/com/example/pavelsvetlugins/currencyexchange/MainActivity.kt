@@ -11,12 +11,14 @@ import com.example.pavelsvetlugins.currencyexchange.Fragments.FragmentAdapter
 import kotlinx.android.synthetic.main.view_pager.*
 
 
+
+
 class MainActivity : AppCompatActivity() {
 
 
     private val TAG = MainActivity::class.java.simpleName
     val mFragmentAdapter = FragmentAdapter(supportFragmentManager)
-     lateinit var mViewPager: ViewPager
+    lateinit var mViewPager: ViewPager
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,6 +32,8 @@ class MainActivity : AppCompatActivity() {
         mViewPager.setCurrentItem(0)
 
     }
+
+
 
     fun setUpViewPager(viewPager: ViewPager){
         val fragmentAdapter = FragmentAdapter(supportFragmentManager)
