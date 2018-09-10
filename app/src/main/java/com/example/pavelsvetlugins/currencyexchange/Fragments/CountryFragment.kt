@@ -12,17 +12,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import com.example.pavelsvetlugins.currencyexchange.*
+import com.example.pavelsvetlugins.currencyexchange.CountryAdapter
+import com.example.pavelsvetlugins.currencyexchange.CurrencyDetails
+import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CountryDataLoad
+import com.example.pavelsvetlugins.currencyexchange.R
 import com.example.pavelsvetlugins.currencyexchange.R.layout.country_view
-import com.google.gson.*
+import com.example.pavelsvetlugins.currencyexchange.SharedViewModel
 import kotlinx.android.synthetic.main.country_view.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
-import retrofit2.converter.gson.GsonConverterFactory
-import java.lang.reflect.Type
-import java.util.*
 
 
 
@@ -32,9 +28,6 @@ import java.util.*
 
 open class CountryFragment: Fragment(), CountryAdapter.Listener {
 
-    private val BASE_URL = "https://free.currencyconverterapi.com"
-
-    private var mCurrencyDetailsList: ArrayList<CurrencyDetails>? = null
 
     private var mAdapter: CountryAdapter? = null
 
@@ -45,6 +38,8 @@ open class CountryFragment: Fragment(), CountryAdapter.Listener {
     private lateinit var model: SharedViewModel
 
     val currencyFragment = CurrencyFragment()
+
+    val countryDataLoad = CountryDataLoad()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return  inflater.inflate(country_view, container, false)
@@ -57,8 +52,8 @@ open class CountryFragment: Fragment(), CountryAdapter.Listener {
 
         initRecyclerView()
         DisplayProgressDialog()
-        loadJSON()
         fm = fragmentManager!!
+        loadCountryList()
     }
 
     private fun initRecyclerView() {
@@ -69,65 +64,24 @@ open class CountryFragment: Fragment(), CountryAdapter.Listener {
     }
 
 
-     class CountryListDeserializer : JsonDeserializer<Response> {
+    fun loadCountryList(){
+        val result = countryDataLoad.loadCountryList()
 
-        @Throws(JsonParseException::class)
-        override fun deserialize(element: JsonElement, type: Type, context: JsonDeserializationContext): Response {
-            Log.v("Compiles tag", "it compiles")
-            val jsonObject = element.asJsonObject.get("results").asJsonObject
-            Log.v("some object", element.toString())
-            Log.v("object", jsonObject.toString())
-            val countryList = ArrayList<CurrencyDetails>()
-            for ((_, value) in jsonObject.entrySet()) {
-                // For individual City objects, we can use default deserialisation:
-                val city = context.deserialize<CurrencyDetails>(value, CurrencyDetails::class.java)
-                countryList.add(city)
+
+        Log.v(TAG, "whats $result?")
+        Log.v(TAG, countryDataLoad.status)
+
+
+        if(countryDataLoad.status == "Ok") {
+            if (pDialog != null && pDialog!!.isShowing()) {
+                pDialog.dismiss()
             }
-            Log.v("Country List", countryList.toString())
-            return Response(ResponseCountryList(countryList))
+            mAdapter = CountryAdapter(model.countryList!!, this@CountryFragment)
+            rv_android_list.adapter = mAdapter
+
         }
-
     }
 
-
-    private fun loadJSON() {
-
-        val builder = GsonBuilder()
-        builder.registerTypeAdapter(Response::class.java, CountryFragment.CountryListDeserializer())
-        val gson = builder.create()
-
-        val requestInterface = Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .build().create(CurrencyConverterApi::class.java)
-
-        val call = requestInterface.getCountries()
-        Log.d("REQUEST", call.toString() + "")
-
-
-        call.enqueue(object : Callback<Response> {
-            override fun onResponse(call: Call<Response>, response: retrofit2.Response<Response>?) {
-                if (response != null) {
-                    if (pDialog != null && pDialog!!.isShowing()) {
-                        pDialog.dismiss()
-                    }
-
-                    val list = response.body()!!
-                    Log.d("RESPONSE", "" + list.toString())
-
-                    mCurrencyDetailsList = ArrayList((list.results.currencyContainer).sortedWith(compareBy{ it.name }))
-                    mAdapter = CountryAdapter(mCurrencyDetailsList!!, this@CountryFragment)
-                    rv_android_list.adapter = mAdapter
-                }
-            }
-
-            override fun onFailure(call: Call<Response>, t: Throwable) {
-                Log.d(TAG, t.localizedMessage)
-                Toast.makeText(activity, "Error ${t.localizedMessage}", Toast.LENGTH_LONG).show()
-            }
-        })
-    }
 
     override fun onItemClick(currencyDetails: CurrencyDetails) {
         Toast.makeText(activity, "${currencyDetails.name} Clicked !", Toast.LENGTH_LONG).show()
