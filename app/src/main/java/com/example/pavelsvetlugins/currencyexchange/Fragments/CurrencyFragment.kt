@@ -21,7 +21,7 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.reflect.Type
 import java.util.*
-
+import kotlin.collections.ArrayList
 
 
 open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
@@ -123,9 +123,10 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
                     val list = response.body()!!
                     Log.d("RESPONSE", "" + list.toString())
 
-                    mCurrencyRateList = ArrayList(list.currency)
+                    mCurrencyRateList = ArrayList(rateCalculation(selectedCurrency, ArrayList(list.currency)))
                     mAdapter = CurrencyAdapter(mCurrencyRateList!!, this@CurrencyFragment)
                     rv_rate_list.adapter = mAdapter
+
                     isLoading = false
                 }
             }
@@ -138,8 +139,29 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
     }
 
     override fun onItemClick(localCurrency: LocalCurrency) {
-        Toast.makeText(activity, "${localCurrency.currency} ${localCurrency.rate} Clicked !", Toast.LENGTH_LONG).show()
+        Toast.makeText(activity, "${localCurrency.currency} ${("%.8f".format(localCurrency.rate))} Clicked !", Toast.LENGTH_LONG).show()
 
+    }
+
+
+    fun rateCalculation(currencyDetail: CurrencyDetails?, currencyRateList: ArrayList<LocalCurrency>): MutableList<LocalCurrency>{
+        val changedRatesList = mutableListOf<LocalCurrency>()
+        var selectedCurrency = currencyDetail?.currencyId
+        var eurRateToSelected: Double = 0.0
+        for(rate in currencyRateList){ if(rate.currency == selectedCurrency){eurRateToSelected = 1/rate.rate}   }
+
+        Log.v(TAG, "Selected currency $selectedCurrency EUR rate for selected currency $eurRateToSelected")
+
+        for((i, rate) in currencyRateList.withIndex())
+        {
+            when(rate.currency){
+                "EUR" -> changedRatesList.add(LocalCurrency(rate.currency, eurRateToSelected))
+                selectedCurrency -> null
+                else -> changedRatesList.add(LocalCurrency(rate.currency, eurRateToSelected*rate.rate))
+            }
+        }
+        Log.v(TAG, "List of calculated currencies $changedRatesList")
+        return changedRatesList
     }
 
     lateinit var pDialog: ProgressDialog

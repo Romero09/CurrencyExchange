@@ -33,8 +33,8 @@ class CurrencyAdapter( private val currencyList: ArrayList<LocalCurrency>,
     class ViewHolder(view : View) : RecyclerView.ViewHolder(view){
 
         fun bind(localCurrency: LocalCurrency, listener: Listener){
-             itemView.currency_name.text = localCurrency.currency
-            itemView.currency_value.text = localCurrency.rate.toString()
+            itemView.currency_name.text = localCurrency.currency
+            itemView.currency_value.text = ("%.4f".format(localCurrency.rate))
             itemView.setOnClickListener { listener.onItemClick(localCurrency) }
         }
 
