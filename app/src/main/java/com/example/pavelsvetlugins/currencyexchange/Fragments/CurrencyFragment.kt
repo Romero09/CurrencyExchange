@@ -33,7 +33,7 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
 
     private var mCurrencyRateList: ArrayList<LocalCurrency>? = null
 
-    private val TAG = CurrencyFragment::class.java.simpleName
+    val TAG = CurrencyFragment::class.java.simpleName
 
     private var mAdapter: CurrencyAdapter? = null
 
@@ -54,10 +54,6 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
 
 
         initRecyclerView()
-
-    }
-
-    fun onActivitySwitch(){
         if(!isLoading) {
             DisplayProgressDialog()
         }
@@ -67,6 +63,7 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
         loadJSON()
         updateHeader(selectedCurrency)
         isLoading = true
+
     }
 
 
