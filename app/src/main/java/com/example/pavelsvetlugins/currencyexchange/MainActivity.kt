@@ -31,8 +31,6 @@ class MainActivity : AppCompatActivity() {
 
         mViewPager.setCurrentItem(0)
 
-
-
     }
 
     override fun onBackPressed() {

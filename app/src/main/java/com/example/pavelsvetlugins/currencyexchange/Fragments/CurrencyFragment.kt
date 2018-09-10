@@ -20,6 +20,9 @@ import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.reflect.Type
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -62,6 +65,7 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
         mAdapter?.clear()
         rv_rate_list.adapter = mAdapter
         loadJSON()
+        updateHeader(selectedCurrency)
         isLoading = true
     }
 
@@ -139,14 +143,25 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
     }
 
     override fun onItemClick(localCurrency: LocalCurrency) {
-        Toast.makeText(activity, "${localCurrency.currency} ${("%.8f".format(localCurrency.rate))} Clicked !", Toast.LENGTH_LONG).show()
+        Toast.makeText(activity, "${localCurrency.currency} ${("%.8f".format(localCurrency.rate))}", Toast.LENGTH_LONG).show()
+
+    }
+
+    fun updateHeader(selectedCurrency: CurrencyDetails?){
+
+        val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+        val currentDate = sdf.format(Date())
+
+        currency_view_country_name.text = selectedCurrency?.name
+        currency_view_currency_name.text = selectedCurrency?.currencyId
+        currency_view_date.text = currentDate
 
     }
 
 
     fun rateCalculation(currencyDetail: CurrencyDetails?, currencyRateList: ArrayList<LocalCurrency>): MutableList<LocalCurrency>{
         val changedRatesList = mutableListOf<LocalCurrency>()
-        var selectedCurrency = currencyDetail?.currencyId
+        val selectedCurrency = currencyDetail?.currencyId
         var eurRateToSelected: Double = 0.0
         for(rate in currencyRateList){ if(rate.currency == selectedCurrency){eurRateToSelected = 1/rate.rate}   }
 
