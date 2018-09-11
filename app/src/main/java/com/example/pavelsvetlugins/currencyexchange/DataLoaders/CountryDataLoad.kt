@@ -2,6 +2,7 @@ package com.example.pavelsvetlugins.currencyexchange.DataLoaders
 
 import android.util.Log
 import com.example.pavelsvetlugins.currencyexchange.*
+import com.example.pavelsvetlugins.currencyexchange.Fragments.GetCountryData
 import com.google.gson.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -16,7 +17,12 @@ interface CountryLoadListener {
     fun failed(message: String)
 }
 
-class CountryDataLoad(){
+class CountryDataLoad(): GetCountryData {
+
+    override fun loadCountryListInterface(listener: CountryLoadListener) {
+        loadCountryList(listener)
+    }
+
 
     var call: Call<Response>? = null
 

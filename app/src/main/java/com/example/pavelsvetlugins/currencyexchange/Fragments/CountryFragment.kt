@@ -21,8 +21,13 @@ import com.example.pavelsvetlugins.currencyexchange.SharedViewModel
 import kotlinx.android.synthetic.main.country_view.*
 
 
+interface GetCountryData{
+    fun loadCountryListInterface(listener: CountryLoadListener)
+}
+
 open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadListener {
 
+    val data: GetCountryData = CountryDataLoad()
 
     private var mAdapter: CountryAdapter? = null
 
@@ -42,7 +47,6 @@ open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadLis
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-
         country_header.visibility = View.GONE
         rv_country_list.visibility = View.GONE
 
