@@ -13,14 +13,12 @@ import android.util.Log
 
 class MainActivity : AppCompatActivity() {
 
-    private val TAG = MainActivity::class.java.simpleName
+    val TAG = MainActivity::class.java.simpleName
 
-    var manager = supportFragmentManager
-    var transaction = manager.beginTransaction()
+    private var manager = supportFragmentManager
+    private var transaction = manager.beginTransaction()
 
     val countryFragment = CountryFragment()
-    val currencyFragment = CurrencyFragment()
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,7 +26,6 @@ class MainActivity : AppCompatActivity() {
 
         transaction.add(R.id.container, countryFragment, countryFragment.TAG)
         transaction.commit()
-
 
     }
 

@@ -10,6 +10,7 @@
 
 
     <TextView
+        android:id="@+id/country_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/country_header"
@@ -18,7 +19,7 @@
         android:textColor="@android:color/black"/>
 
     <LinearLayout
-        android:id="@+id/on_failure_view"
+        android:id="@+id/country_on_failure_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -26,7 +27,7 @@
         android:visibility="gone">
 
     <TextView
-        android:id="@+id/error_message_text"
+        android:id="@+id/country_error_message_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/error_message"
@@ -34,19 +35,46 @@
         />
 
     <Button
-        android:id="@+id/retry_btn"
+        android:id="@+id/country_retry_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/retry_button"
         android:layout_gravity="center"
         android:layout_margin="16dp"
-        android:onClick="retryLoadData"
+        />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_margin="20dp"
+        android:id="@+id/country_loading_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+    <TextView
+        android:layout_margin="8dp"
+        android:id="@+id/country_loading_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/country_loading_text"
+        android:textSize="20sp"
+        android:textAlignment="center"
+        android:textColor="@android:color/black"/>
+
+
+    <ProgressBar
+        android:id="@+id/country_loading_spinner"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
         />
 
     </LinearLayout>
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/rv_android_list"
+        android:id="@+id/rv_country_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"

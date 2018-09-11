@@ -20,8 +20,6 @@ class CountryDataLoad(){
 
     var call: Call<Response>? = null
 
-    var status = "none"
-
     val TAG = CountryDataLoad::class.java.simpleName
 
     private val BASE_URL = "https://free.currencyconverterapi.com"
@@ -61,25 +59,18 @@ class CountryDataLoad(){
         call = requestInterface.getCountries()
         Log.d("REQUEST", call.toString() + "")
 
-
-
         call?.enqueue(object : Callback<Response> {
             override fun onResponse(call: Call<Response>, response: retrofit2.Response<Response>?) {
                 if (response != null) {
                     val list = response.body()!!
                     Log.d("RESPONSE", "" + list.toString())
-
-                    status = "Ok"
-                    Log.v(TAG, status)
                     listener.success(ArrayList((list.results.currencyContainer).sortedWith(compareBy{ it.name })));
                 }
             }
 
             override fun onFailure(call: Call<Response>, t: Throwable) {
                 Log.d(TAG, t.localizedMessage)
-                status = "Loading Error"
-                Log.v(TAG, status)
-                listener.failed(status);
+                listener.failed("Error");
             }
         })
     }

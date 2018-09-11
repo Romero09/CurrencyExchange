@@ -1,6 +1,5 @@
 package com.example.pavelsvetlugins.currencyexchange.Fragments
 
-import android.app.ProgressDialog
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -27,49 +26,53 @@ open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadLis
 
     private var mAdapter: CountryAdapter? = null
 
-    val TAG = CountryFragment::class.java.simpleName
+    val TAG = CountryFragment::class.java.simpleName!!
 
     private lateinit var fm: FragmentManager
 
     private lateinit var model: SharedViewModel
 
-    val currencyFragment = CurrencyFragment()
+    private val currencyFragment = CurrencyFragment()
 
-    val countryDataLoad = CountryDataLoad()
+    private val countryDataLoad = CountryDataLoad()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(country_view, container, false)
-
-
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        model = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
+        country_header.visibility = View.GONE
+        rv_country_list.visibility = View.GONE
 
-        retry_btn.setOnClickListener {
+        country_loading_layout.visibility = View.VISIBLE
+
+        model = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
+        fm = fragmentManager!!
+
+        country_retry_btn.setOnClickListener {
             retryLoadData()
         }
 
         initRecyclerView()
-        fm = fragmentManager!!
 
-
-        if(model.countryList != null){
+        if (model.countryList != null) {
+            country_loading_layout.visibility = View.GONE
+            rv_country_list.visibility = View.VISIBLE
+            country_header.visibility = View.VISIBLE
             Log.v(TAG, "model country list is not null")
             mAdapter = CountryAdapter(ArrayList(model.countryList), this@CountryFragment)
-            rv_android_list.adapter = mAdapter
+            rv_country_list.adapter = mAdapter
         } else {
             loadCountryList()
         }
     }
 
     private fun initRecyclerView() {
-
-        rv_android_list.setHasFixedSize(true)
+        rv_country_list.setHasFixedSize(true)
         val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(activity)
-        rv_android_list.layoutManager = layoutManager
+        rv_country_list.layoutManager = layoutManager
     }
 
 
@@ -79,27 +82,27 @@ open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadLis
 
 
     override fun success(response: ArrayList<CurrencyDetails>) {
-        Log.v(TAG, "Respons succesful Status: ${countryDataLoad.status}")
-        if (countryDataLoad.status == "Ok") {
-            model.countryList = response
-            mAdapter = CountryAdapter(response, this@CountryFragment)
-            rv_android_list.adapter = mAdapter
-        }
+        rv_country_list.visibility = View.VISIBLE
+        country_header.visibility = View.VISIBLE
+        country_loading_layout.visibility = View.GONE
+
+        Log.v(TAG, "Respons succesful")
+        model.countryList = response
+        mAdapter = CountryAdapter(response, this@CountryFragment)
+        rv_country_list.adapter = mAdapter
     }
 
 
     override fun failed(message: String) {
-        on_failure_view.visibility = View.VISIBLE
-        rv_android_list.visibility = View.GONE
-
+        country_on_failure_view.visibility = View.VISIBLE
+        country_loading_layout.visibility = View.GONE
     }
 
     private fun retryLoadData() {
-        on_failure_view.visibility = View.GONE
-        rv_android_list.visibility = View.VISIBLE
+        country_on_failure_view.visibility = View.GONE
+        country_loading_layout.visibility = View.VISIBLE
         loadCountryList()
     }
-
 
 
     override fun onItemClick(currencyDetails: CurrencyDetails) {

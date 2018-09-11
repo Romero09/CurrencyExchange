@@ -1,6 +1,5 @@
 package com.example.pavelsvetlugins.currencyexchange.Fragments
 
-import android.app.ProgressDialog
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -12,24 +11,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import com.example.pavelsvetlugins.currencyexchange.*
-import com.google.gson.*
+import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CurrencyDataLoad
+import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CurrencyLoadListener
+import kotlinx.android.synthetic.main.country_view.*
 import kotlinx.android.synthetic.main.currency_view.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
-import retrofit2.converter.gson.GsonConverterFactory
-import java.lang.reflect.Type
 import java.text.SimpleDateFormat
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.collections.ArrayList
 
 
-open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
+open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener, CurrencyLoadListener {
 
-    private val BASE_URL = "http://data.fixer.io"
 
     private var mCurrencyRateList: ArrayList<LocalCurrency>? = null
 
@@ -37,11 +29,11 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
 
     private var mAdapter: CurrencyAdapter? = null
 
-    private var isLoading: Boolean = false
-
     private lateinit var model: SharedViewModel
 
     private var selectedCurrency: CurrencyDetails? = null
+
+    private val currencyDataLoad = CurrencyDataLoad()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return  inflater.inflate(R.layout.currency_view, container, false)
@@ -50,19 +42,22 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        currency_header.visibility = View.GONE
+        rv_rate_list.visibility = View.GONE
+        currency_loading_layout.visibility = View.VISIBLE
+
         model = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
-
-
-        initRecyclerView()
-        if(!isLoading) {
-        }
         selectedCurrency = model.currencyDetailsModel
-        mAdapter?.clear()
-        rv_rate_list.adapter = mAdapter
-        loadJSON()
-        updateHeader(selectedCurrency)
-        isLoading = true
 
+        currency_loading_text.text = (currency_loading_text.text.toString() +" ${selectedCurrency?.name}")
+
+        currency_retry_btn.setOnClickListener {
+            retryLoadData()
+        }
+
+        updateHeader(selectedCurrency)
+        loadCurrencyList()
+        initRecyclerView()
     }
 
 
@@ -73,76 +68,41 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
         rv_rate_list.layoutManager = layoutManager
     }
 
+    private fun loadCurrencyList() {
+        currencyDataLoad.loadCurrencyDataList(this)
+    }
 
-
-    class CurrencyListDeserializer : JsonDeserializer<Rates> {
-
-        @Throws(JsonParseException::class)
-        override fun deserialize(element: JsonElement, type: Type, context: JsonDeserializationContext): Rates {
-            Log.v("Compiles tag RATES", "it compiles")
-            val jsonObject = element.asJsonObject.get("rates").asJsonObject
-            Log.v("some object RATES", element.toString())
-            Log.v("object RATES", jsonObject.toString())
-            val countryList = ArrayList<LocalCurrency>()
-            for ((key , value) in jsonObject.entrySet()) {
-                // For individual City objects, we can use default deserialisation:
-                val currency = key
-                val country = context.deserialize<Double>(value, Double::class.java)
-                Log.v("KEY RATES", key)
-                Log.v("deserialize RATES", country.toString())
-                val rate = LocalCurrency(key, context.deserialize(value, Double::class.java))
-                countryList.add(rate)
-            }
-            Log.v("Country List", countryList.toString())
-            return Rates(countryList)
+    override fun success(response: ArrayList<LocalCurrency>) {
+        currency_loading_layout.visibility = View.GONE
+        currency_header.visibility = View.VISIBLE
+        rv_rate_list.visibility = View.VISIBLE
+        mCurrencyRateList = ArrayList(rateCalculation(selectedCurrency, ArrayList(response)))
+        mAdapter = CurrencyAdapter(mCurrencyRateList!!, this@CurrencyFragment)
+        if(rv_rate_list != null) {
+            rv_rate_list.adapter = mAdapter
         }
+
     }
 
-    private fun loadJSON() {
-        val builder = GsonBuilder()
-        builder.registerTypeAdapter(Rates::class.java, CurrencyListDeserializer())
-        val gson = builder.create()
-
-        val requestInterface = Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .build().create(CurrencyConverterApi::class.java)
-
-        val call = requestInterface.getCurrency()
-        Log.d("REQUEST  RATES", call.toString() + "")
-
-
-        call.enqueue(object : Callback<Rates> {
-            override fun onResponse(call: Call<Rates>, response: retrofit2.Response<Rates>?) {
-                if (response != null) {
-
-                    val list = response.body()!!
-                    Log.d("RESPONSE", "" + list.toString())
-
-                    mCurrencyRateList = ArrayList(rateCalculation(selectedCurrency, ArrayList(list.currency)))
-                    mAdapter = CurrencyAdapter(mCurrencyRateList!!, this@CurrencyFragment)
-                    if(rv_rate_list != null) {
-                        rv_rate_list.adapter = mAdapter
-                    }
-
-                    isLoading = false
-                }
-            }
-
-            override fun onFailure(call: Call<Rates>, t: Throwable) {
-                Log.d(TAG, t.localizedMessage)
-                Toast.makeText(activity, "Error ${t.localizedMessage}", Toast.LENGTH_LONG).show()
-            }
-        })
+    override fun failed(message: String) {
+        currency_loading_layout.visibility = View.GONE
+        currency_header.visibility = View.GONE
+        rv_rate_list.visibility = View.GONE
+        currency_on_failure_view.visibility = View.VISIBLE
     }
+
+    private fun retryLoadData(){
+        currency_on_failure_view.visibility = View.GONE
+        currency_loading_layout.visibility = View.VISIBLE
+        loadCurrencyList()
+    }
+
 
     override fun onItemClick(localCurrency: LocalCurrency) {
         Toast.makeText(activity, "${localCurrency.currency} ${("%.8f".format(localCurrency.rate))}", Toast.LENGTH_LONG).show()
-
     }
 
-    fun updateHeader(selectedCurrency: CurrencyDetails?){
+    private fun updateHeader(selectedCurrency: CurrencyDetails?){
 
         val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
         val currentDate = sdf.format(Date())
@@ -154,7 +114,7 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
     }
 
 
-    fun rateCalculation(currencyDetail: CurrencyDetails?, currencyRateList: ArrayList<LocalCurrency>): MutableList<LocalCurrency>{
+    private fun rateCalculation(currencyDetail: CurrencyDetails?, currencyRateList: ArrayList<LocalCurrency>): MutableList<LocalCurrency>{
         val changedRatesList = mutableListOf<LocalCurrency>()
         val selectedCurrency = currencyDetail?.currencyId
         var eurRateToSelected: Double = 0.0

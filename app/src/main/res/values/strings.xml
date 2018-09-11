@@ -3,4 +3,6 @@
     <string name="country_header">Страны</string>
     <string name="error_message">Произошла ошибка! Попробуйте еще раз.</string>
     <string name="retry_button">Повторить</string>
+    <string name="country_loading_text">Загрузка списка стран</string>
+    <string name="currency_loading_text">Загрузка информации о </string>
 </resources>
