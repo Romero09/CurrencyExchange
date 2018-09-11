@@ -55,7 +55,6 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
 
         initRecyclerView()
         if(!isLoading) {
-            DisplayProgressDialog()
         }
         selectedCurrency = model.currencyDetailsModel
         mAdapter?.clear()
@@ -117,16 +116,15 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
         call.enqueue(object : Callback<Rates> {
             override fun onResponse(call: Call<Rates>, response: retrofit2.Response<Rates>?) {
                 if (response != null) {
-                    if (pDialog != null && pDialog!!.isShowing()) {
-                        pDialog.dismiss()
-                    }
 
                     val list = response.body()!!
                     Log.d("RESPONSE", "" + list.toString())
 
                     mCurrencyRateList = ArrayList(rateCalculation(selectedCurrency, ArrayList(list.currency)))
                     mAdapter = CurrencyAdapter(mCurrencyRateList!!, this@CurrencyFragment)
-                    rv_rate_list.adapter = mAdapter
+                    if(rv_rate_list != null) {
+                        rv_rate_list.adapter = mAdapter
+                    }
 
                     isLoading = false
                 }
@@ -175,16 +173,5 @@ open class CurrencyFragment: Fragment(), CurrencyAdapter.Listener {
         Log.v(TAG, "List of calculated currencies $changedRatesList")
         return changedRatesList
     }
-
-    lateinit var pDialog: ProgressDialog
-    fun DisplayProgressDialog() {
-
-        pDialog = ProgressDialog(activity)
-        pDialog!!.setMessage("Loading..")
-        pDialog!!.setCancelable(false)
-        pDialog!!.isIndeterminate = false
-        pDialog!!.show()
-    }
-
 
 }

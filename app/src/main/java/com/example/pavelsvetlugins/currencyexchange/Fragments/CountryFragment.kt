@@ -15,18 +15,14 @@ import android.widget.Toast
 import com.example.pavelsvetlugins.currencyexchange.CountryAdapter
 import com.example.pavelsvetlugins.currencyexchange.CurrencyDetails
 import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CountryDataLoad
+import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CountryLoadListener
 import com.example.pavelsvetlugins.currencyexchange.R
 import com.example.pavelsvetlugins.currencyexchange.R.layout.country_view
 import com.example.pavelsvetlugins.currencyexchange.SharedViewModel
 import kotlinx.android.synthetic.main.country_view.*
 
 
-
-
-
-
-
-open class CountryFragment: Fragment(), CountryAdapter.Listener {
+open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadListener {
 
 
     private var mAdapter: CountryAdapter? = null
@@ -42,7 +38,9 @@ open class CountryFragment: Fragment(), CountryAdapter.Listener {
     val countryDataLoad = CountryDataLoad()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return  inflater.inflate(country_view, container, false)
+        return inflater.inflate(country_view, container, false)
+
+
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -50,42 +48,62 @@ open class CountryFragment: Fragment(), CountryAdapter.Listener {
 
         model = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
 
+        retry_btn.setOnClickListener {
+            retryLoadData()
+        }
+
         initRecyclerView()
-        DisplayProgressDialog()
         fm = fragmentManager!!
-        loadCountryList()
+
+
+        if(model.countryList != null){
+            Log.v(TAG, "model country list is not null")
+            mAdapter = CountryAdapter(ArrayList(model.countryList), this@CountryFragment)
+            rv_android_list.adapter = mAdapter
+        } else {
+            loadCountryList()
+        }
     }
 
     private fun initRecyclerView() {
 
         rv_android_list.setHasFixedSize(true)
-        val layoutManager : RecyclerView.LayoutManager = LinearLayoutManager(activity)
+        val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(activity)
         rv_android_list.layoutManager = layoutManager
     }
 
 
-    fun loadCountryList(){
-        val result = countryDataLoad.loadCountryList()
+    private fun loadCountryList() {
+        countryDataLoad.loadCountryList(this)
+    }
 
 
-        Log.v(TAG, "whats $result?")
-        Log.v(TAG, countryDataLoad.status)
-
-
-        if(countryDataLoad.status == "Ok") {
-            if (pDialog != null && pDialog!!.isShowing()) {
-                pDialog.dismiss()
-            }
-            mAdapter = CountryAdapter(model.countryList!!, this@CountryFragment)
+    override fun success(response: ArrayList<CurrencyDetails>) {
+        Log.v(TAG, "Respons succesful Status: ${countryDataLoad.status}")
+        if (countryDataLoad.status == "Ok") {
+            model.countryList = response
+            mAdapter = CountryAdapter(response, this@CountryFragment)
             rv_android_list.adapter = mAdapter
-
         }
     }
 
 
+    override fun failed(message: String) {
+        on_failure_view.visibility = View.VISIBLE
+        rv_android_list.visibility = View.GONE
+
+    }
+
+    private fun retryLoadData() {
+        on_failure_view.visibility = View.GONE
+        rv_android_list.visibility = View.VISIBLE
+        loadCountryList()
+    }
+
+
+
     override fun onItemClick(currencyDetails: CurrencyDetails) {
         Toast.makeText(activity, "${currencyDetails.name} Clicked !", Toast.LENGTH_LONG).show()
-        //(activity as MainActivity).setViewPager(1)
         model.currencyDetailsModel = currencyDetails
 
         val transaction = fm.beginTransaction()
@@ -93,18 +111,4 @@ open class CountryFragment: Fragment(), CountryAdapter.Listener {
         transaction.addToBackStack(null)
         transaction.commit()
     }
-
-
-    lateinit var pDialog: ProgressDialog
-    fun DisplayProgressDialog() {
-
-        pDialog = ProgressDialog(activity)
-        pDialog!!.setMessage("Loading..")
-        pDialog!!.setCancelable(false)
-        pDialog!!.isIndeterminate = false
-        pDialog!!.show()
-    }
-
-
-
 }

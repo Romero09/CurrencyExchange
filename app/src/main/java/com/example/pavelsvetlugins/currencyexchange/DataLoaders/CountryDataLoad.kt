@@ -11,17 +11,20 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.reflect.Type
 import java.util.*
 
+interface CountryLoadListener {
+    fun success(response: ArrayList<CurrencyDetails>)
+    fun failed(message: String)
+}
+
 class CountryDataLoad(){
 
-    var status = "none"
+    var call: Call<Response>? = null
 
-    private var mCurrencyDetailsList: ArrayList<CurrencyDetails> = ArrayList<CurrencyDetails>()
+    var status = "none"
 
     val TAG = CountryDataLoad::class.java.simpleName
 
     private val BASE_URL = "https://free.currencyconverterapi.com"
-
-    val model = SharedViewModel()
 
     class CountryListDeserializer : JsonDeserializer<Response> {
 
@@ -33,18 +36,17 @@ class CountryDataLoad(){
             Log.v("object", jsonObject.toString())
             val countryList = ArrayList<CurrencyDetails>()
             for ((_, value) in jsonObject.entrySet()) {
-                // For individual City objects, we can use default deserialisation:
+                // For individual Country objects, we can use default deserialisation:
                 val city = context.deserialize<CurrencyDetails>(value, CurrencyDetails::class.java)
                 countryList.add(city)
             }
             Log.v("Country List", countryList.toString())
             return Response(ResponseCountryList(countryList))
         }
-
     }
 
 
-    fun loadCountryList() : String {
+    fun loadCountryList(listener: CountryLoadListener){
 
         val builder = GsonBuilder()
         builder.registerTypeAdapter(Response::class.java, CountryListDeserializer())
@@ -56,30 +58,30 @@ class CountryDataLoad(){
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build().create(CurrencyConverterApi::class.java)
 
-        val call = requestInterface.getCountries()
+        call = requestInterface.getCountries()
         Log.d("REQUEST", call.toString() + "")
 
 
-        call.enqueue(object : Callback<Response> {
+
+        call?.enqueue(object : Callback<Response> {
             override fun onResponse(call: Call<Response>, response: retrofit2.Response<Response>?) {
                 if (response != null) {
-
                     val list = response.body()!!
                     Log.d("RESPONSE", "" + list.toString())
-                    model.countryList = ArrayList((list.results.currencyContainer).sortedWith(compareBy{ it.name }))
 
                     status = "Ok"
                     Log.v(TAG, status)
+                    listener.success(ArrayList((list.results.currencyContainer).sortedWith(compareBy{ it.name })));
                 }
             }
 
             override fun onFailure(call: Call<Response>, t: Throwable) {
                 Log.d(TAG, t.localizedMessage)
-                status = "Error"
+                status = "Loading Error"
                 Log.v(TAG, status)
+                listener.failed(status);
             }
         })
-        return "nothing"
     }
 
 

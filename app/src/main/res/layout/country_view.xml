@@ -7,6 +7,8 @@
     tools:context=".MainActivity"
     android:orientation="vertical">
 
+
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -14,6 +16,34 @@
         android:textSize="24sp"
         android:textAlignment="center"
         android:textColor="@android:color/black"/>
+
+    <LinearLayout
+        android:id="@+id/on_failure_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_margin="24dp"
+        android:visibility="gone">
+
+    <TextView
+        android:id="@+id/error_message_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/error_message"
+        android:layout_gravity="center"
+        />
+
+    <Button
+        android:id="@+id/retry_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/retry_button"
+        android:layout_gravity="center"
+        android:layout_margin="16dp"
+        android:onClick="retryLoadData"
+        />
+
+    </LinearLayout>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rv_android_list"

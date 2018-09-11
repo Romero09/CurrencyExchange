@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">Currency Exchange</string>
     <string name="country_header">Страны</string>
+    <string name="error_message">Произошла ошибка! Попробуйте еще раз.</string>
+    <string name="retry_button">Повторить</string>
 </resources>

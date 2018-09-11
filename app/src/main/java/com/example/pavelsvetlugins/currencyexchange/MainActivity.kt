@@ -4,8 +4,11 @@ package com.example.pavelsvetlugins.currencyexchange
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CountryDataLoad
 import com.example.pavelsvetlugins.currencyexchange.Fragments.CountryFragment
 import com.example.pavelsvetlugins.currencyexchange.Fragments.CurrencyFragment
+import android.R.attr.fragment
+import android.util.Log
 
 
 class MainActivity : AppCompatActivity() {
