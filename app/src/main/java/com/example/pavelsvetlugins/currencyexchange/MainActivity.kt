@@ -12,6 +12,8 @@ class MainActivity : AppCompatActivity() {
 
     val TAG = MainActivity::class.java.simpleName
 
+    var app: MyApplication? = null
+
     private var manager = supportFragmentManager
     private var transaction = manager.beginTransaction()
 
@@ -23,8 +25,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.view_pager)
 
+        app = applicationContext as MyApplication
         model = ViewModelProviders.of(this).get(SharedViewModel::class.java)
-
 
         transaction.add(R.id.container, countryFragment, countryFragment.TAG)
         transaction.commit()
@@ -34,11 +36,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
 
-        if (model.countryDataLoadInstance != null) {
-            model.countryDataLoadInstance?.countryFetchCancel()
+        if (app?.countryDataFetching != null) {
+            app?.countryDataFetching?.countryFetchCancel()
             countryFragment.isExit = true
         }
-        model.currencyDataLoadInstance?.currencyFetchCancel()
+        app?.currencyDataFetch?.currencyFetchCancel()
         super.onBackPressed()
     }
 

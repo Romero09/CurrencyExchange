@@ -7,12 +7,7 @@ import android.view.ViewGroup
 import kotlinx.android.synthetic.main.recycler_view_country.view.*
 
 class CountryAdapter(private val countryList: ArrayList<CurrencyDetails>,
-                     private val listener: Listener) : RecyclerView.Adapter<CountryAdapter.ViewHolder>() {
-
-    interface Listener {
-
-        fun onItemClick(currencyDetails: CurrencyDetails)
-    }
+                     private val listener: (CurrencyDetails) -> Unit) : RecyclerView.Adapter<CountryAdapter.ViewHolder>() {
 
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -31,10 +26,10 @@ class CountryAdapter(private val countryList: ArrayList<CurrencyDetails>,
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
-        fun bind(currencyDetails: CurrencyDetails, listener: Listener) {
+        fun bind(currencyDetails: CurrencyDetails, listener: (CurrencyDetails) -> Unit)  = with(itemView) {
 
             itemView.country_name.text = currencyDetails.name
-            itemView.setOnClickListener { listener.onItemClick(currencyDetails) }
+            setOnClickListener { listener(currencyDetails) }
         }
     }
 }

@@ -11,23 +11,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import com.example.pavelsvetlugins.currencyexchange.CountryAdapter
-import com.example.pavelsvetlugins.currencyexchange.CurrencyDetails
+import com.example.pavelsvetlugins.currencyexchange.*
 import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CountryDataLoad
 import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CountryFetchData
 import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CountryLoadListener
-import com.example.pavelsvetlugins.currencyexchange.R
 import com.example.pavelsvetlugins.currencyexchange.R.layout.country_view
-import com.example.pavelsvetlugins.currencyexchange.SharedViewModel
 import kotlinx.android.synthetic.main.country_view.*
 
 
+open class CountryFragment : Fragment(), CountryLoadListener {
 
-open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadListener {
+    var app: MyApplication? = null
 
     var isExit = false
 
-    val countryDataFetching: CountryFetchData = CountryDataLoad()
+    var countryDataFetching: CountryFetchData? = null
 
     private var mAdapter: CountryAdapter? = null
 
@@ -48,6 +46,9 @@ open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadLis
         country_header.visibility = View.GONE
         rv_country_list.visibility = View.GONE
 
+        app = activity?.getApplicationContext() as MyApplication
+        countryDataFetching = app?.countryDataFetching!!
+
         country_loading_layout.visibility = View.VISIBLE
 
         model = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
@@ -65,7 +66,7 @@ open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadLis
             rv_country_list.visibility = View.VISIBLE
             country_header.visibility = View.VISIBLE
             Log.v(TAG, "Getting country list from SharedViewModel")
-            mAdapter = CountryAdapter(ArrayList(model.countryList), this@CountryFragment)
+            mAdapter = CountryAdapter(ArrayList(model.countryList)) { onItemClick(it) }
             rv_country_list.adapter = mAdapter
         } else {
             loadCountryList()
@@ -80,7 +81,7 @@ open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadLis
 
 
     private fun loadCountryList() {
-        countryDataFetching.loadCountryList(this)
+        countryDataFetching?.loadCountryList(this)
     }
 
 
@@ -91,14 +92,16 @@ open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadLis
 
         Log.v(TAG, "Respons succesful")
         model.countryList = response
-        mAdapter = CountryAdapter(response, this@CountryFragment)
+        mAdapter = CountryAdapter(response) { onItemClick(it) }
+
         rv_country_list.adapter = mAdapter
     }
 
 
     override fun failed(message: String) {
-        if(isExit){
-        return}
+        if (isExit) {
+            return
+        }
         country_on_failure_view.visibility = View.VISIBLE
         country_loading_layout.visibility = View.GONE
     }
@@ -110,7 +113,7 @@ open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadLis
     }
 
 
-    override fun onItemClick(currencyDetails: CurrencyDetails) {
+    private fun onItemClick(currencyDetails: CurrencyDetails) {
         model.currencyDetailsModel = currencyDetails
 
         model.countryDataLoadInstance = null

@@ -19,10 +19,14 @@ import kotlinx.android.synthetic.main.currency_view.*
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
+import com.example.pavelsvetlugins.currencyexchange.MyApplication
+
+
 
 
 open class CurrencyFragment : Fragment(), CurrencyAdapter.Listener, CurrencyLoadListener {
 
+    var app: MyApplication? = null
 
     val TAG = CurrencyFragment::class.java.simpleName
 
@@ -34,7 +38,7 @@ open class CurrencyFragment : Fragment(), CurrencyAdapter.Listener, CurrencyLoad
 
     private var selectedCurrency: CurrencyDetails? = null
 
-    val currencyDataFetch: CurrencyFetchData = CurrencyDataLoad()
+    private var currencyDataFetch: CurrencyFetchData? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.currency_view, container, false)
@@ -42,6 +46,9 @@ open class CurrencyFragment : Fragment(), CurrencyAdapter.Listener, CurrencyLoad
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
+        app = activity?.getApplicationContext() as MyApplication
+        currencyDataFetch = app?.currencyDataFetch!!
 
         currency_loading_layout.visibility = View.GONE
 
@@ -60,14 +67,14 @@ open class CurrencyFragment : Fragment(), CurrencyAdapter.Listener, CurrencyLoad
         updateHeader(selectedCurrency)
         initRecyclerView()
 
-        if (model.currencyList != null) {
-            mCurrencyRateList = model.currencyList
-            Log.v(TAG, "Getting currency list from SharedViewModel")
-            mAdapter = CurrencyAdapter(mCurrencyRateList!!, this@CurrencyFragment)
-            rv_rate_list.adapter = mAdapter
-        } else {
+//        if (model.currencyList != null) {
+//            mCurrencyRateList = model.currencyList
+//            Log.v(TAG, "Getting currency list from SharedViewModel")
+//            mAdapter = CurrencyAdapter(mCurrencyRateList!!, this@CurrencyFragment)
+//            rv_rate_list.adapter = mAdapter
+//        } else {
             loadCurrencyList()
-        }
+        //}
     }
 
 
@@ -82,7 +89,7 @@ open class CurrencyFragment : Fragment(), CurrencyAdapter.Listener, CurrencyLoad
         currency_header.visibility = View.GONE
         rv_rate_list.visibility = View.GONE
         currency_loading_layout.visibility = View.VISIBLE
-        currencyDataFetch.loadCurrencyList(this)
+        currencyDataFetch?.loadCurrencyList(this)
     }
 
     override fun success(response: ArrayList<LocalCurrency>) {

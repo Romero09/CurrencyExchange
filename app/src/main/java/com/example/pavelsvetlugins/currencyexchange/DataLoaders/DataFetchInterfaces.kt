@@ -1,5 +1,6 @@
 package com.example.pavelsvetlugins.currencyexchange.DataLoaders
 
+import android.content.Context
 import com.example.pavelsvetlugins.currencyexchange.CurrencyDetails
 import com.example.pavelsvetlugins.currencyexchange.LocalCurrency
 import java.util.ArrayList

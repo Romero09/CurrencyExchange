@@ -1,6 +1,7 @@
 package com.example.pavelsvetlugins.currencyexchange.DataLoaders
 
 import android.util.Log
+import android.widget.Toast
 import com.example.pavelsvetlugins.currencyexchange.*
 import com.google.gson.*
 import retrofit2.Call
@@ -15,13 +16,11 @@ import java.util.*
 
 class CountryDataLoad(): CountryFetchData {
 
-
-
     var call: Call<Response>? = null
 
     val TAG = CountryDataLoad::class.java.simpleName
 
-    private val BASE_URL = "https://free.currencyconverterapi.com"
+    private val COUNTRY_URL = "https://free.currencyconverterapi.com"
 
     class CountryListDeserializer : JsonDeserializer<Response> {
 
@@ -50,7 +49,7 @@ class CountryDataLoad(): CountryFetchData {
         val gson = builder.create()
 
         val requestInterface = Retrofit.Builder()
-                .baseUrl(BASE_URL)
+                .baseUrl(COUNTRY_URL)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build().create(CurrencyConverterApi::class.java)

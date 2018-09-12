@@ -1,10 +1,8 @@
 package com.example.pavelsvetlugins.currencyexchange.DataLoaders
 
 import android.util.Log
-import android.widget.Toast
 import com.example.pavelsvetlugins.currencyexchange.*
 import com.google.gson.*
-import kotlinx.android.synthetic.main.currency_view.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Retrofit
@@ -22,7 +20,7 @@ class CurrencyDataLoad(): CurrencyFetchData {
 
     val TAG = CurrencyDataLoad::class.java.simpleName
 
-    private val BASE_URL = "http://data.fixer.io"
+    private val CURRENCY_URL = "http://data.fixer.io"
 
     class CurrencyListDeserializer : JsonDeserializer<Rates> {
 
@@ -53,7 +51,7 @@ class CurrencyDataLoad(): CurrencyFetchData {
         val gson = builder.create()
 
         val requestInterface = Retrofit.Builder()
-                .baseUrl(BASE_URL)
+                .baseUrl(CURRENCY_URL)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build().create(CurrencyConverterApi::class.java)
