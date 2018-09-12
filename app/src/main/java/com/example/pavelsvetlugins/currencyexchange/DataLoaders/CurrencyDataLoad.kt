@@ -13,13 +13,12 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.reflect.Type
 
 
-interface CurrencyLoadListener {
-    fun success(response: ArrayList<LocalCurrency>)
-    fun failed(message: String)
-}
 
 
-class CurrencyDataLoad() {
+
+class CurrencyDataLoad(): CurrencyFetchData {
+
+    var call: Call<Rates>? = null
 
     val TAG = CurrencyDataLoad::class.java.simpleName
 
@@ -48,7 +47,7 @@ class CurrencyDataLoad() {
         }
     }
 
-    fun loadCurrencyDataList(listener: CurrencyLoadListener) {
+    override fun loadCurrencyList(listener: CurrencyLoadListener) {
         val builder = GsonBuilder()
         builder.registerTypeAdapter(Rates::class.java, CurrencyListDeserializer())
         val gson = builder.create()
@@ -59,10 +58,10 @@ class CurrencyDataLoad() {
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build().create(CurrencyConverterApi::class.java)
 
-        val call = requestInterface.getCurrency()
+        call = requestInterface.getCurrency()
         Log.d("REQUEST  RATES", call.toString() + "")
 
-        call.enqueue(object : Callback<Rates> {
+        call?.enqueue(object : Callback<Rates> {
             override fun onResponse(call: Call<Rates>, response: retrofit2.Response<Rates>?) {
                 if (response != null) {
                     val list = response.body()!!
@@ -77,4 +76,10 @@ class CurrencyDataLoad() {
             }
         })
     }
+
+    override fun currencyFetchCancel() {
+        call?.cancel()
+        Log.v(TAG, "Call is canceled: ${call?.isCanceled}")
+    }
+
 }

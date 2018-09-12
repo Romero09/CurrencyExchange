@@ -2,7 +2,6 @@ package com.example.pavelsvetlugins.currencyexchange.DataLoaders
 
 import android.util.Log
 import com.example.pavelsvetlugins.currencyexchange.*
-import com.example.pavelsvetlugins.currencyexchange.Fragments.GetCountryData
 import com.google.gson.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -12,16 +11,10 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.reflect.Type
 import java.util.*
 
-interface CountryLoadListener {
-    fun success(response: ArrayList<CurrencyDetails>)
-    fun failed(message: String)
-}
 
-class CountryDataLoad(): GetCountryData {
 
-    override fun loadCountryListInterface(listener: CountryLoadListener) {
-        loadCountryList(listener)
-    }
+class CountryDataLoad(): CountryFetchData {
+
 
 
     var call: Call<Response>? = null
@@ -50,7 +43,7 @@ class CountryDataLoad(): GetCountryData {
     }
 
 
-    fun loadCountryList(listener: CountryLoadListener){
+    override fun loadCountryList(listener: CountryLoadListener){
 
         val builder = GsonBuilder()
         builder.registerTypeAdapter(Response::class.java, CountryListDeserializer())
@@ -81,5 +74,9 @@ class CountryDataLoad(): GetCountryData {
         })
     }
 
+    override fun countryFetchCancel() {
+        call?.cancel()
+        Log.v(TAG, "Call is canceled: ${call?.isCanceled}")
+    }
 
 }

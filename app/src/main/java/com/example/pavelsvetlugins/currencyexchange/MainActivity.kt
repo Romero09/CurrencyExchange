@@ -2,13 +2,10 @@
 
 package com.example.pavelsvetlugins.currencyexchange
 
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CountryDataLoad
 import com.example.pavelsvetlugins.currencyexchange.Fragments.CountryFragment
-import com.example.pavelsvetlugins.currencyexchange.Fragments.CurrencyFragment
-import android.R.attr.fragment
-import android.util.Log
 
 
 class MainActivity : AppCompatActivity() {
@@ -18,11 +15,16 @@ class MainActivity : AppCompatActivity() {
     private var manager = supportFragmentManager
     private var transaction = manager.beginTransaction()
 
-    val countryFragment = CountryFragment()
+    private val countryFragment = CountryFragment()
+
+    private lateinit var model: SharedViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.view_pager)
+
+        model = ViewModelProviders.of(this).get(SharedViewModel::class.java)
+
 
         transaction.add(R.id.container, countryFragment, countryFragment.TAG)
         transaction.commit()
@@ -30,22 +32,14 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    override fun onBackPressed() {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        if (model.countryDataLoadInstance != null) {
+            model.countryDataLoadInstance?.countryFetchCancel()
+            countryFragment.isExit = true
+        }
+        model.currencyDataLoadInstance?.currencyFetchCancel()
+        super.onBackPressed()
+    }
 
 }

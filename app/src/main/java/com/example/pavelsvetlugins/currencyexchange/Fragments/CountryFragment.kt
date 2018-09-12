@@ -14,6 +14,7 @@ import android.widget.Toast
 import com.example.pavelsvetlugins.currencyexchange.CountryAdapter
 import com.example.pavelsvetlugins.currencyexchange.CurrencyDetails
 import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CountryDataLoad
+import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CountryFetchData
 import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CountryLoadListener
 import com.example.pavelsvetlugins.currencyexchange.R
 import com.example.pavelsvetlugins.currencyexchange.R.layout.country_view
@@ -21,13 +22,12 @@ import com.example.pavelsvetlugins.currencyexchange.SharedViewModel
 import kotlinx.android.synthetic.main.country_view.*
 
 
-interface GetCountryData{
-    fun loadCountryListInterface(listener: CountryLoadListener)
-}
 
 open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadListener {
 
-    val data: GetCountryData = CountryDataLoad()
+    var isExit = false
+
+    val countryDataFetching: CountryFetchData = CountryDataLoad()
 
     private var mAdapter: CountryAdapter? = null
 
@@ -38,8 +38,6 @@ open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadLis
     private lateinit var model: SharedViewModel
 
     private val currencyFragment = CurrencyFragment()
-
-    private val countryDataLoad = CountryDataLoad()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(country_view, container, false)
@@ -53,6 +51,7 @@ open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadLis
         country_loading_layout.visibility = View.VISIBLE
 
         model = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
+        model.countryDataLoadInstance = countryDataFetching
         fm = fragmentManager!!
 
         country_retry_btn.setOnClickListener {
@@ -65,7 +64,7 @@ open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadLis
             country_loading_layout.visibility = View.GONE
             rv_country_list.visibility = View.VISIBLE
             country_header.visibility = View.VISIBLE
-            Log.v(TAG, "model country list is not null")
+            Log.v(TAG, "Getting country list from SharedViewModel")
             mAdapter = CountryAdapter(ArrayList(model.countryList), this@CountryFragment)
             rv_country_list.adapter = mAdapter
         } else {
@@ -81,7 +80,7 @@ open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadLis
 
 
     private fun loadCountryList() {
-        countryDataLoad.loadCountryList(this)
+        countryDataFetching.loadCountryList(this)
     }
 
 
@@ -98,6 +97,8 @@ open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadLis
 
 
     override fun failed(message: String) {
+        if(isExit){
+        return}
         country_on_failure_view.visibility = View.VISIBLE
         country_loading_layout.visibility = View.GONE
     }
@@ -110,9 +111,9 @@ open class CountryFragment : Fragment(), CountryAdapter.Listener, CountryLoadLis
 
 
     override fun onItemClick(currencyDetails: CurrencyDetails) {
-        Toast.makeText(activity, "${currencyDetails.name} Clicked !", Toast.LENGTH_LONG).show()
         model.currencyDetailsModel = currencyDetails
 
+        model.countryDataLoadInstance = null
         val transaction = fm.beginTransaction()
         transaction.replace(R.id.container, currencyFragment, currencyFragment.TAG)
         transaction.addToBackStack(null)
