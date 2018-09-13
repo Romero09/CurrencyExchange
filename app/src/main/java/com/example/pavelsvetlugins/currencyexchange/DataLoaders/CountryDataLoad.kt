@@ -1,7 +1,7 @@
 package com.example.pavelsvetlugins.currencyexchange.DataLoaders
 
 import android.util.Log
-import android.widget.Toast
+import android.util.LruCache
 import com.example.pavelsvetlugins.currencyexchange.*
 import com.google.gson.*
 import retrofit2.Call
@@ -13,14 +13,18 @@ import java.lang.reflect.Type
 import java.util.*
 
 
-
-class CountryDataLoad(): CountryFetchData {
-
-    var call: Call<Response>? = null
+class CountryDataLoad() : CountryFetchData {
 
     val TAG = CountryDataLoad::class.java.simpleName
 
-    private val COUNTRY_URL = "https://free.currencyconverterapi.com"
+    var call: Call<Response>? = null
+
+    val cacheSize = (Runtime.getRuntime().maxMemory().toInt()) / 8
+
+    override val mCountryMemoryCache =
+            object : LruCache<String, ArrayList<CurrencyDetails>>(cacheSize) {}
+
+    override val COUNTRY_URL = "https://free.currencyconverterapi.com"
 
     class CountryListDeserializer : JsonDeserializer<Response> {
 
@@ -42,7 +46,9 @@ class CountryDataLoad(): CountryFetchData {
     }
 
 
-    override fun loadCountryList(listener: CountryLoadListener){
+    override fun loadCountryList(listener: CountryLoadListener) {
+        Log.v(TAG, "Cache size $cacheSize")
+
 
         val builder = GsonBuilder()
         builder.registerTypeAdapter(Response::class.java, CountryListDeserializer())
@@ -62,7 +68,16 @@ class CountryDataLoad(): CountryFetchData {
                 if (response != null) {
                     val list = response.body()!!
                     Log.d("RESPONSE", "" + list.toString())
-                    listener.success(ArrayList((list.results.currencyContainer).sortedWith(compareBy{ it.name })));
+
+                    if (mCountryMemoryCache.get(COUNTRY_URL) == null ) {
+                        mCountryMemoryCache.put(COUNTRY_URL, ArrayList((list.results.currencyContainer)
+                                .sortedWith(compareBy { it.name })))
+                        Log.v(TAG, "Cache was null, creating new COUNTRY_URL cache")
+                    }
+
+                    Log.v(TAG, "Cache found: ${mCountryMemoryCache.get(COUNTRY_URL)}")
+
+                    listener.success(ArrayList((list.results.currencyContainer).sortedWith(compareBy { it.name })));
                 }
             }
 
@@ -72,6 +87,8 @@ class CountryDataLoad(): CountryFetchData {
             }
         })
     }
+
+
 
     override fun countryFetchCancel() {
         call?.cancel()

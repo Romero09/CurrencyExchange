@@ -9,8 +9,4 @@ import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CurrencyFetchDat
 
 class SharedViewModel : ViewModel() {
     var currencyDetailsModel: CurrencyDetails? = null
-    var countryList: ArrayList<CurrencyDetails>? = null
-    var currencyList: ArrayList<LocalCurrency>? = null
-    var currencyDataLoadInstance: CurrencyFetchData? = null
-    var countryDataLoadInstance: CountryFetchData? = null
 }

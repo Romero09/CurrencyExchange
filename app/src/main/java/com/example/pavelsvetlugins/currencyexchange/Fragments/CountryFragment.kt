@@ -10,9 +10,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import com.example.pavelsvetlugins.currencyexchange.*
-import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CountryDataLoad
 import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CountryFetchData
 import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CountryLoadListener
 import com.example.pavelsvetlugins.currencyexchange.R.layout.country_view
@@ -33,7 +31,7 @@ open class CountryFragment : Fragment(), CountryLoadListener {
 
     private lateinit var fm: FragmentManager
 
-    private lateinit var model: SharedViewModel
+    private lateinit var sharedViewModel: SharedViewModel
 
     private val currencyFragment = CurrencyFragment()
 
@@ -51,24 +49,27 @@ open class CountryFragment : Fragment(), CountryLoadListener {
 
         country_loading_layout.visibility = View.VISIBLE
 
-        model = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
-        model.countryDataLoadInstance = countryDataFetching
+        sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
         fm = fragmentManager!!
 
         country_retry_btn.setOnClickListener {
             retryLoadData()
         }
 
+        //Initializing recycler view
         initRecyclerView()
 
-        if (model.countryList != null) {
+        val countryCacheResult = countryDataFetching?.mCountryMemoryCache?.get(countryDataFetching?.COUNTRY_URL)
+        //Fetching Country data collection from memory cache if exists
+        if (countryCacheResult != null) {
             country_loading_layout.visibility = View.GONE
             rv_country_list.visibility = View.VISIBLE
             country_header.visibility = View.VISIBLE
-            Log.v(TAG, "Getting country list from SharedViewModel")
-            mAdapter = CountryAdapter(ArrayList(model.countryList)) { onItemClick(it) }
+            Log.v(TAG, "Getting country list from cache")
+            mAdapter = CountryAdapter(ArrayList(countryCacheResult)) { onItemClick(it) }
             rv_country_list.adapter = mAdapter
         } else {
+            //if data in cache is missing fetching it from web
             loadCountryList()
         }
     }
@@ -90,8 +91,7 @@ open class CountryFragment : Fragment(), CountryLoadListener {
         country_header.visibility = View.VISIBLE
         country_loading_layout.visibility = View.GONE
 
-        Log.v(TAG, "Respons succesful")
-        model.countryList = response
+        Log.v(TAG, "Response successful")
         mAdapter = CountryAdapter(response) { onItemClick(it) }
 
         rv_country_list.adapter = mAdapter
@@ -114,9 +114,7 @@ open class CountryFragment : Fragment(), CountryLoadListener {
 
 
     private fun onItemClick(currencyDetails: CurrencyDetails) {
-        model.currencyDetailsModel = currencyDetails
-
-        model.countryDataLoadInstance = null
+        sharedViewModel.currencyDetailsModel = currencyDetails
         val transaction = fm.beginTransaction()
         transaction.replace(R.id.container, currencyFragment, currencyFragment.TAG)
         transaction.addToBackStack(null)

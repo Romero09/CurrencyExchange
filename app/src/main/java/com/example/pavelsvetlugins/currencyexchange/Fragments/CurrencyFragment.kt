@@ -11,17 +11,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import com.example.pavelsvetlugins.currencyexchange.*
-import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CurrencyDataLoad
 import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CurrencyFetchData
 import com.example.pavelsvetlugins.currencyexchange.DataLoaders.CurrencyLoadListener
-import kotlinx.android.synthetic.main.country_view.*
 import kotlinx.android.synthetic.main.currency_view.*
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 import com.example.pavelsvetlugins.currencyexchange.MyApplication
-
-
 
 
 open class CurrencyFragment : Fragment(), CurrencyAdapter.Listener, CurrencyLoadListener {
@@ -34,7 +30,7 @@ open class CurrencyFragment : Fragment(), CurrencyAdapter.Listener, CurrencyLoad
 
     private var mAdapter: CurrencyAdapter? = null
 
-    private lateinit var model: SharedViewModel
+    private lateinit var sharedViewModel: SharedViewModel
 
     private var selectedCurrency: CurrencyDetails? = null
 
@@ -52,11 +48,9 @@ open class CurrencyFragment : Fragment(), CurrencyAdapter.Listener, CurrencyLoad
 
         currency_loading_layout.visibility = View.GONE
 
-        model = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
+        sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
 
-        model.currencyDataLoadInstance = currencyDataFetch
-
-        selectedCurrency = model.currencyDetailsModel
+        selectedCurrency = sharedViewModel.currencyDetailsModel
 
         currency_loading_text.text = (currency_loading_text.text.toString() + " ${selectedCurrency?.name}")
 
@@ -67,14 +61,17 @@ open class CurrencyFragment : Fragment(), CurrencyAdapter.Listener, CurrencyLoad
         updateHeader(selectedCurrency)
         initRecyclerView()
 
-//        if (model.currencyList != null) {
-//            mCurrencyRateList = model.currencyList
-//            Log.v(TAG, "Getting currency list from SharedViewModel")
-//            mAdapter = CurrencyAdapter(mCurrencyRateList!!, this@CurrencyFragment)
-//            rv_rate_list.adapter = mAdapter
-//        } else {
+        val currencyCacheResult = currencyDataFetch?.mCurrencyMemoryCache?.get(currencyDataFetch?.CURRENCY_URL)
+
+
+        if (currencyCacheResult != null && isUpToDate(currencyCacheResult)) {
+                mCurrencyRateList = currencyCacheResult.second
+                Log.v(TAG, "Getting currency list from cache")
+                mAdapter = CurrencyAdapter(mCurrencyRateList!!, this@CurrencyFragment)
+                rv_rate_list.adapter = mAdapter
+        } else {
             loadCurrencyList()
-        //}
+        }
     }
 
 
@@ -97,7 +94,6 @@ open class CurrencyFragment : Fragment(), CurrencyAdapter.Listener, CurrencyLoad
         currency_header.visibility = View.VISIBLE
         rv_rate_list.visibility = View.VISIBLE
         mCurrencyRateList = ArrayList(rateCalculation(selectedCurrency, ArrayList(response)))
-        model.currencyList = mCurrencyRateList
         mAdapter = CurrencyAdapter(mCurrencyRateList!!, this@CurrencyFragment)
         if (rv_rate_list != null) {
             rv_rate_list.adapter = mAdapter
@@ -158,6 +154,19 @@ open class CurrencyFragment : Fragment(), CurrencyAdapter.Listener, CurrencyLoad
         }
         Log.v(TAG, "List of calculated currencies $changedRatesList")
         return changedRatesList
+    }
+
+    private fun isUpToDate(currencyListPair: Pair<Date, java.util.ArrayList<LocalCurrency>>?): Boolean {
+        if (currencyListPair != null) {
+            val storedDate = currencyListPair.first
+            val nowDate = Calendar.getInstance().time
+            Log.v(TAG, "Stored date $storedDate now date $nowDate it is: ${(nowDate < storedDate)}")
+            if (nowDate < storedDate) {
+                return true
+            }
+        }
+        return false
+
     }
 
 }

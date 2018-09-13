@@ -1,6 +1,7 @@
 package com.example.pavelsvetlugins.currencyexchange.DataLoaders
 
 import android.util.Log
+import android.util.LruCache
 import com.example.pavelsvetlugins.currencyexchange.*
 import com.google.gson.*
 import retrofit2.Call
@@ -9,18 +10,21 @@ import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.reflect.Type
-
-
-
+import java.util.*
 
 
 class CurrencyDataLoad(): CurrencyFetchData {
 
     var call: Call<Rates>? = null
 
+    val cacheSize = (Runtime.getRuntime().maxMemory().toInt())/8
+
     val TAG = CurrencyDataLoad::class.java.simpleName
 
-    private val CURRENCY_URL = "http://data.fixer.io"
+    override val mCurrencyMemoryCache =
+            object : LruCache<String, Pair<Date, ArrayList<LocalCurrency>>>(cacheSize) {}
+
+    override val CURRENCY_URL = "http://data.fixer.io"
 
     class CurrencyListDeserializer : JsonDeserializer<Rates> {
 
@@ -64,6 +68,19 @@ class CurrencyDataLoad(): CurrencyFetchData {
                 if (response != null) {
                     val list = response.body()!!
                     Log.d("RESPONSE", "" + list.toString())
+
+                    val calendarNow = Calendar.getInstance()
+                    calendarNow.add(Calendar.HOUR, 1)
+                    calendarNow.set(Calendar.MINUTE, 0)
+                    calendarNow.set(Calendar.SECOND, 0)
+
+                    if(mCurrencyMemoryCache.get(CURRENCY_URL) == null){
+                        mCurrencyMemoryCache.put(CURRENCY_URL, calendarNow.time to ArrayList((list.currency)))
+                        Log.v(TAG, "Cache was null, creating new CURRENCY_URL cache")
+                    }
+                    Log.v(TAG, "Cache found: ${mCurrencyMemoryCache.get(CURRENCY_URL)}")
+
+
                     listener.success(ArrayList(list.currency))
                 }
             }
@@ -74,6 +91,8 @@ class CurrencyDataLoad(): CurrencyFetchData {
             }
         })
     }
+
+
 
     override fun currencyFetchCancel() {
         call?.cancel()
