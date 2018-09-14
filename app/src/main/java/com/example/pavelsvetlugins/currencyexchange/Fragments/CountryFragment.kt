@@ -59,19 +59,7 @@ open class CountryFragment : Fragment(), CountryLoadListener {
         //Initializing recycler view
         initRecyclerView()
 
-        val countryCacheResult = countryDataFetching?.mCountryMemoryCache?.get(countryDataFetching?.COUNTRY_URL)
-        //Fetching Country data collection from memory cache if exists
-        if (countryCacheResult != null) {
-            country_loading_layout.visibility = View.GONE
-            rv_country_list.visibility = View.VISIBLE
-            country_header.visibility = View.VISIBLE
-            Log.v(TAG, "Getting country list from cache")
-            mAdapter = CountryAdapter(ArrayList(countryCacheResult)) { onItemClick(it) }
-            rv_country_list.adapter = mAdapter
-        } else {
-            //if data in cache is missing fetching it from web
-            loadCountryList()
-        }
+        loadCountryList()
     }
 
     private fun initRecyclerView() {
@@ -86,7 +74,7 @@ open class CountryFragment : Fragment(), CountryLoadListener {
     }
 
 
-    override fun success(response: ArrayList<CurrencyDetails>) {
+    override fun success(response: ArrayList<CountryDetails>) {
         rv_country_list.visibility = View.VISIBLE
         country_header.visibility = View.VISIBLE
         country_loading_layout.visibility = View.GONE
@@ -113,8 +101,8 @@ open class CountryFragment : Fragment(), CountryLoadListener {
     }
 
 
-    private fun onItemClick(currencyDetails: CurrencyDetails) {
-        sharedViewModel.currencyDetailsModel = currencyDetails
+    private fun onItemClick(countryDetails: CountryDetails) {
+        sharedViewModel.countryDetailsModel = countryDetails
         val transaction = fm.beginTransaction()
         transaction.replace(R.id.container, currencyFragment, currencyFragment.TAG)
         transaction.addToBackStack(null)

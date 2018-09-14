@@ -17,7 +17,6 @@ import kotlinx.android.synthetic.main.currency_view.*
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
-import com.example.pavelsvetlugins.currencyexchange.MyApplication
 
 
 open class CurrencyFragment : Fragment(), CurrencyAdapter.Listener, CurrencyLoadListener {
@@ -32,7 +31,7 @@ open class CurrencyFragment : Fragment(), CurrencyAdapter.Listener, CurrencyLoad
 
     private lateinit var sharedViewModel: SharedViewModel
 
-    private var selectedCurrency: CurrencyDetails? = null
+    private var selectedCountry: CountryDetails? = null
 
     private var currencyDataFetch: CurrencyFetchData? = null
 
@@ -50,28 +49,30 @@ open class CurrencyFragment : Fragment(), CurrencyAdapter.Listener, CurrencyLoad
 
         sharedViewModel = ViewModelProviders.of(activity!!).get(SharedViewModel::class.java)
 
-        selectedCurrency = sharedViewModel.currencyDetailsModel
+        selectedCountry = sharedViewModel.countryDetailsModel
 
-        currency_loading_text.text = (currency_loading_text.text.toString() + " ${selectedCurrency?.name}")
+        currency_loading_text.text = (currency_loading_text.text.toString() + " ${selectedCountry?.name}")
 
         currency_retry_btn.setOnClickListener {
             retryLoadData()
         }
 
-        updateHeader(selectedCurrency)
+        updateHeader(selectedCountry)
         initRecyclerView()
 
         val currencyCacheResult = currencyDataFetch?.mCurrencyMemoryCache?.get(currencyDataFetch?.CURRENCY_URL)
 
 
-        if (currencyCacheResult != null && isUpToDate(currencyCacheResult)) {
-                mCurrencyRateList = currencyCacheResult.second
-                Log.v(TAG, "Getting currency list from cache")
-                mAdapter = CurrencyAdapter(mCurrencyRateList!!, this@CurrencyFragment)
-                rv_rate_list.adapter = mAdapter
-        } else {
-            loadCurrencyList()
-        }
+//        if (currencyCacheResult != null && isUpToDate(currencyCacheResult)) {
+//                mCurrencyRateList = currencyCacheResult.second
+//                Log.v(TAG, "Getting currency list from cache")
+//                mAdapter = CurrencyAdapter(mCurrencyRateList!!, this@CurrencyFragment)
+//                rv_rate_list.adapter = mAdapter
+//        } else {
+//
+//        }
+
+        loadCurrencyList()
     }
 
 
@@ -89,11 +90,11 @@ open class CurrencyFragment : Fragment(), CurrencyAdapter.Listener, CurrencyLoad
         currencyDataFetch?.loadCurrencyList(this)
     }
 
-    override fun success(response: ArrayList<LocalCurrency>) {
+    override fun success(response: Pair<Date, java.util.ArrayList<LocalCurrency>>) {
         currency_loading_layout.visibility = View.GONE
         currency_header.visibility = View.VISIBLE
         rv_rate_list.visibility = View.VISIBLE
-        mCurrencyRateList = ArrayList(rateCalculation(selectedCurrency, ArrayList(response)))
+        mCurrencyRateList = ArrayList(rateCalculation(selectedCountry, response.second))
         mAdapter = CurrencyAdapter(mCurrencyRateList!!, this@CurrencyFragment)
         if (rv_rate_list != null) {
             rv_rate_list.adapter = mAdapter
@@ -123,21 +124,21 @@ open class CurrencyFragment : Fragment(), CurrencyAdapter.Listener, CurrencyLoad
         Toast.makeText(activity, "${localCurrency.currency} ${("%.8f".format(localCurrency.rate))}", Toast.LENGTH_LONG).show()
     }
 
-    private fun updateHeader(selectedCurrency: CurrencyDetails?) {
+    private fun updateHeader(selectedCountry: CountryDetails?) {
 
         val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
         val currentDate = sdf.format(Date())
 
-        currency_view_country_name.text = selectedCurrency?.name
-        currency_view_currency_name.text = selectedCurrency?.currencyId
+        currency_view_country_name.text = selectedCountry?.name
+        currency_view_currency_name.text = selectedCountry?.currencyId
         currency_view_date.text = currentDate
 
     }
 
 
-    private fun rateCalculation(currencyDetail: CurrencyDetails?, currencyRateList: ArrayList<LocalCurrency>): MutableList<LocalCurrency> {
+    private fun rateCalculation(countryDetails: CountryDetails?, currencyRateList: ArrayList<LocalCurrency>): MutableList<LocalCurrency> {
         val changedRatesList = mutableListOf<LocalCurrency>()
-        val selectedCurrency = currencyDetail?.currencyId
+        val selectedCurrency = countryDetails?.currencyId
         var eurRateToSelected: Double = 0.0
         for (rate in currencyRateList) {
             if (rate.currency == selectedCurrency) {
@@ -156,17 +157,5 @@ open class CurrencyFragment : Fragment(), CurrencyAdapter.Listener, CurrencyLoad
         return changedRatesList
     }
 
-    private fun isUpToDate(currencyListPair: Pair<Date, java.util.ArrayList<LocalCurrency>>?): Boolean {
-        if (currencyListPair != null) {
-            val storedDate = currencyListPair.first
-            val nowDate = Calendar.getInstance().time
-            Log.v(TAG, "Stored date $storedDate now date $nowDate it is: ${(nowDate < storedDate)}")
-            if (nowDate < storedDate) {
-                return true
-            }
-        }
-        return false
-
-    }
 
 }

@@ -1,13 +1,12 @@
 package com.example.pavelsvetlugins.currencyexchange.DataLoaders
 
-import android.content.Context
 import android.util.LruCache
-import com.example.pavelsvetlugins.currencyexchange.CurrencyDetails
+import com.example.pavelsvetlugins.currencyexchange.CountryDetails
 import com.example.pavelsvetlugins.currencyexchange.LocalCurrency
 import java.util.*
 
 interface CountryFetchData {
-    val mCountryMemoryCache: LruCache<String, ArrayList<CurrencyDetails>>
+    val mCountryMemoryCache: LruCache<String, ArrayList<CountryDetails>>
     val COUNTRY_URL: String
     fun loadCountryList(listener: CountryLoadListener)
     fun countryFetchCancel()
@@ -21,11 +20,13 @@ interface CurrencyFetchData {
 }
 
 interface CurrencyLoadListener {
-    fun success(response: ArrayList<LocalCurrency>)
+    fun success(response: Pair<Date, ArrayList<LocalCurrency>>)
     fun failed(message: String)
 }
 
 interface CountryLoadListener {
-    fun success(response: ArrayList<CurrencyDetails>)
+    fun success(response: ArrayList<CountryDetails>)
     fun failed(message: String)
 }
+
+
