@@ -62,21 +62,25 @@ class CurrencyDataLoad(context: Context): CurrencyFetchData {
 
         val diskCacheResult = app.diskCache?.readCurrencyListFromDiskCache(CURRENCY_URL)
         val cacheResult = mCurrencyMemoryCache.get(CURRENCY_URL)
+        Log.v(TAG, "Cache state diskCacheResult- $diskCacheResult")
+        Log.v(TAG, "Cache state cacheResult- $cacheResult")
 
-        if (diskCacheResult == null || isUpToDate(diskCacheResult)) {
-            Log.v(TAG, "Cache state diskCacheResult- $diskCacheResult")
-            Log.v(TAG, "Cache state cacheResult- $cacheResult")
+        if (cacheResult != null && !isUpToDate(cacheResult)) {
+            listener.success(cacheResult)
+            Log.v(TAG, "Cache found, fetching from cache")
+
+        } else if (diskCacheResult != null && !isUpToDate(diskCacheResult)){
+            mCurrencyMemoryCache.put(CURRENCY_URL, diskCacheResult)
+            listener.success(diskCacheResult)
+
+        } else {
             val cacheListener = object : CurrencyLoadListener{
                 override fun success(response: Pair<Date, ArrayList<LocalCurrency>>) {
 
                     app.diskCache?.writeCurrencyListToDiskCache(CURRENCY_URL, responseResult!!)
                     Log.v(TAG, "DiskCache was null or old, creating new COUNTRY_URL cache")
-
-                    if (cacheResult == null || isUpToDate(cacheResult)) {
-                        mCurrencyMemoryCache.put(CURRENCY_URL, responseResult)
-                        Log.v(TAG, "Cache was null ord old, creating new COUNTRY_URL cache")
-                        listener.success(mCurrencyMemoryCache.get(CURRENCY_URL))
-                    }
+                    mCurrencyMemoryCache.put(CURRENCY_URL, responseResult)
+                    listener.success(responseResult!!)
                 }
 
                 override fun failed(message: String) {
@@ -86,15 +90,6 @@ class CurrencyDataLoad(context: Context): CurrencyFetchData {
             }
 
             downloadCurrencyList(cacheListener)
-
-        } else if (cacheResult != null) {
-            listener.success(cacheResult)
-            Log.v(TAG, "Cache found, fetching from cache")
-
-        } else {
-            mCurrencyMemoryCache.put(CURRENCY_URL, diskCacheResult)
-            listener.success(mCurrencyMemoryCache.get(CURRENCY_URL))
-            Log.v(TAG, "DiskCache found fetching from diskCache")
         }
 
     }
@@ -150,7 +145,7 @@ class CurrencyDataLoad(context: Context): CurrencyFetchData {
         if (currencyListPair != null) {
             val storedDate = currencyListPair.first
             val nowDate = Calendar.getInstance().time
-            Log.v(TAG, "Stored date $storedDate now date $nowDate it is: ${(nowDate < storedDate)}")
+            Log.v(TAG, "Stored date $storedDate now date $nowDate it is: ${(nowDate > storedDate)}")
             if (nowDate > storedDate) {
                 return true
             }

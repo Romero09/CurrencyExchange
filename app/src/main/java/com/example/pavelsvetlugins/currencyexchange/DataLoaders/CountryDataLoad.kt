@@ -30,6 +30,7 @@ class CountryDataLoad(val context: Context) : CountryFetchData {
     override val COUNTRY_URL = "https://free.currencyconverterapi.com"
 
 
+
     class CountryListDeserializer : JsonDeserializer<Response> {
 
         @Throws(JsonParseException::class)
@@ -51,21 +52,29 @@ class CountryDataLoad(val context: Context) : CountryFetchData {
 
     override fun loadCountryList(listener: CountryLoadListener) {
         Log.v(TAG, "Cache size $cacheSize")
-        val diskCacheResult = app.diskCache?.readCountryListFromDiskCache(COUNTRY_URL)
         val cacheResult = mCountryMemoryCache.get(COUNTRY_URL)
-        if (diskCacheResult == null) {
+        val diskCacheResult = app.diskCache?.readCountryListFromDiskCache(COUNTRY_URL)
+
+
+        if (cacheResult != null) {
+            listener.success(cacheResult)
+            Log.v(TAG, "Cache found, fetching from cache")
+
+        } else if (diskCacheResult != null) {
+            mCountryMemoryCache.put(COUNTRY_URL, diskCacheResult)
+            listener.success(diskCacheResult)
+
+        } else {
 
             val cacheListener = object : CountryLoadListener {
                 override fun success(response: java.util.ArrayList<CountryDetails>) {
 
                     app.diskCache?.writeCountryListToDiskCache(COUNTRY_URL, responseResult!!)
                     Log.v(TAG, "DiskCache was null, creating new COUNTRY_URL cache")
-                    if (cacheResult == null) {
-                        mCountryMemoryCache.put(COUNTRY_URL, responseResult)
-                        Log.v(TAG, "Cache was null, creating new COUNTRY_URL cache")
-                        listener.success(mCountryMemoryCache.get(COUNTRY_URL))
-                    }
-                }
+                    mCountryMemoryCache.put(COUNTRY_URL, responseResult)
+                    Log.v(TAG, "Cache was null, creating new COUNTRY_URL cache")
+                    listener.success(mCountryMemoryCache.get(COUNTRY_URL))
+              }
 
                 override fun failed(message: String) {
                     listener.failed(message)
@@ -74,14 +83,6 @@ class CountryDataLoad(val context: Context) : CountryFetchData {
             }
             downloadCountryList(cacheListener)
 
-        } else if (cacheResult != null) {
-            listener.success(cacheResult)
-            Log.v(TAG, "Cache found, fetching from cache: ${mCountryMemoryCache.get(COUNTRY_URL)}")
-
-        } else {
-            mCountryMemoryCache.put(COUNTRY_URL, app.diskCache?.readCountryListFromDiskCache(COUNTRY_URL))
-            listener.success(mCountryMemoryCache.get(COUNTRY_URL))
-            Log.v(TAG, "DiskCache found fetching from diskCache: ${app.diskCache?.readCountryListFromDiskCache(COUNTRY_URL)}")
         }
 
     }
